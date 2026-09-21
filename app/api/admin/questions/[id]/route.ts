@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { getD1 } from "@/db";
-import { ADMIN_COOKIE_NAME, isValidAdminSession } from "@/lib/admin-auth";
+import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
+import { corsPreflight, jsonWithCors } from "@/lib/cors";
+
+export async function OPTIONS(request: NextRequest) {
+  return corsPreflight(request);
+}
 
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const isAdmin = await isValidAdminSession(
-    request.cookies.get(ADMIN_COOKIE_NAME)?.value
-  );
+  const isAdmin = await isAuthorizedAdminRequest(request);
   if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    return jsonWithCors(request, { error: "Unauthorized." }, { status: 401 });
   }
 
   const { id } = await context.params;
@@ -22,15 +25,17 @@ export async function DELETE(
       .run();
 
     if (!result.meta.changes) {
-      return NextResponse.json(
+      return jsonWithCors(
+        request,
         { error: "This question no longer exists." },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return jsonWithCors(request, { ok: true });
   } catch {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: "The question could not be deleted." },
       { status: 503 }
     );

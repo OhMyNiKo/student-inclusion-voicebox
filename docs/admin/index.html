@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' https://student-inclusion-voicebox.niko20090709.chatgpt.site; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'"
+    />
+    <title>Moderation Desk · Student Inclusion</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/admin.js" defer></script>
+  </head>
+  <body class="grid-page admin-page">
+    <header class="admin-header">
+      <div class="admin-shell header-row">
+        <div>
+          <p class="eyebrow lime">Student Inclusion</p>
+          <h1>Moderation desk</h1>
+        </div>
+        <button id="sign-out" class="outline-light" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main class="admin-shell admin-main">
+      <section class="stats" aria-label="Moderation statistics">
+        <article><span>All submissions</span><strong id="all-count">—</strong></article>
+        <article class="accent"><span>Awaiting reply</span><strong id="pending-count">—</strong></article>
+        <article><span>Published</span><strong id="published-count">—</strong></article>
+      </section>
+
+      <section class="queue-heading">
+        <div>
+          <p class="eyebrow primary">Oldest first</p>
+          <h2>Review queue</h2>
+        </div>
+        <p>Replying publishes both the question and response. Deletion is permanent.</p>
+      </section>
+
+      <p id="admin-status" class="loading-card" role="status" aria-live="polite">
+        Loading submissions…
+      </p>
+      <section id="review-queue" class="review-queue"></section>
+    </main>
+
+    <dialog id="delete-dialog" class="delete-dialog">
+      <form method="dialog">
+        <h2>Delete this question forever?</h2>
+        <p>This removes the question and any published reply immediately. It cannot be recovered.</p>
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">Keep question</button>
+          <button id="confirm-delete" value="confirm" class="danger-button">Delete permanently</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

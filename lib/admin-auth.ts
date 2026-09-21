@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import type { NextRequest } from "next/server";
 
 export const ADMIN_COOKIE_NAME = "si_admin_session";
 export const ADMIN_SESSION_SECONDS = 8 * 60 * 60;
@@ -68,4 +69,15 @@ export async function isValidAdminSession(value: string | undefined) {
   } catch {
     return false;
   }
+}
+
+export async function isAuthorizedAdminRequest(request: NextRequest) {
+  const authorization = request.headers.get("authorization");
+  const bearerToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
+    : undefined;
+
+  return isValidAdminSession(
+    bearerToken || request.cookies.get(ADMIN_COOKIE_NAME)?.value
+  );
 }

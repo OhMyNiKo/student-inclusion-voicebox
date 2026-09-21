@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { getD1 } from "@/db";
 import {
@@ -7,15 +7,33 @@ import {
   createAdminSession,
   matchesAdminPassphrase,
 } from "@/lib/admin-auth";
+import { corsPreflight, isGitHubPagesRequest, jsonWithCors } from "@/lib/cors";
+import { listPublishedQuestions } from "@/lib/questions";
 
 const MAX_QUESTION_LENGTH = 1000;
+
+export async function OPTIONS(request: NextRequest) {
+  return corsPreflight(request);
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    return jsonWithCors(request, { questions: await listPublishedQuestions() });
+  } catch {
+    return jsonWithCors(
+      request,
+      { error: "Published questions could not be loaded." },
+      { status: 503 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return jsonWithCors(request, { error: "Invalid request." }, { status: 400 });
   }
 
   const payload = body as { message?: unknown; website?: unknown };
@@ -25,18 +43,20 @@ export async function POST(request: NextRequest) {
     typeof payload.website === "string" ? payload.website.trim() : "";
 
   if (website) {
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return jsonWithCors(request, { ok: true }, { status: 201 });
   }
 
   if (!message) {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: "Please write a message before sending." },
       { status: 400 }
     );
   }
 
   if (message.length > MAX_QUESTION_LENGTH) {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: `Messages must be ${MAX_QUESTION_LENGTH} characters or fewer.` },
       { status: 400 }
     );
@@ -44,8 +64,13 @@ export async function POST(request: NextRequest) {
 
   if (matchesAdminPassphrase(message)) {
     try {
-      const response = NextResponse.json({ ok: true, destination: "/admin" });
-      response.cookies.set(ADMIN_COOKIE_NAME, await createAdminSession(), {
+      const session = await createAdminSession();
+      const response = jsonWithCors(request, {
+        ok: true,
+        destination: "/admin",
+        ...(isGitHubPagesRequest(request) ? { adminToken: session } : {}),
+      });
+      response.cookies.set(ADMIN_COOKIE_NAME, session, {
         httpOnly: true,
         sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
@@ -54,7 +79,8 @@ export async function POST(request: NextRequest) {
       });
       return response;
     } catch {
-      return NextResponse.json(
+      return jsonWithCors(
+        request,
         { error: "The moderation portal is temporarily unavailable." },
         { status: 503 }
       );
@@ -76,9 +102,10 @@ export async function POST(request: NextRequest) {
       )
       .run();
 
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return jsonWithCors(request, { ok: true }, { status: 201 });
   } catch {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       {
         error:
           "Feedback is temporarily unavailable. Your text is still here—please try again shortly.",

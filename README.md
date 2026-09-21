@@ -2,6 +2,13 @@
 
 An anonymous student feedback portal with a moderated public Q&A board.
 
+The public GitHub Pages frontend is served from `docs/` at:
+
+`https://ohmyniko.github.io/student-inclusion-voicebox/`
+
+It uses the deployed application as a database and authentication API because
+GitHub Pages only hosts static files and cannot run server code.
+
 ## What it does
 
 - Accepts feedback without requiring a name, account, or sign-in.

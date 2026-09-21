@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Reviewed Student Inclusion questions and replies." />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' https://student-inclusion-voicebox.niko20090709.chatgpt.site; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'"
+    />
+    <title>Public Q&amp;A · Student Inclusion</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/voices.js" defer></script>
+  </head>
+  <body class="grid-page">
+    <header class="board-header">
+      <div class="wide-shell header-row">
+        <a class="back-link" href="../"><span aria-hidden="true">←</span> Back to voicebox</a>
+        <a class="submit-button compact" href="../">Ask anonymously <span aria-hidden="true">✎</span></a>
+      </div>
+    </header>
+
+    <main class="wide-shell board-main">
+      <section class="board-intro">
+        <div>
+          <p class="eyebrow primary">Public Q&amp;A board</p>
+          <h1>Heard. Reviewed.<span>Answered.</span></h1>
+        </div>
+        <p class="board-note">
+          Latest first. Each card shows an anonymous question and the official
+          Student Inclusion reply.
+        </p>
+      </section>
+
+      <p id="board-status" class="loading-card" role="status">Loading published voices…</p>
+      <section id="question-grid" class="question-grid" aria-live="polite"></section>
+    </main>
+  </body>
+</html>

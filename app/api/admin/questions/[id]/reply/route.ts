@@ -1,19 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { getD1 } from "@/db";
-import { ADMIN_COOKIE_NAME, isValidAdminSession } from "@/lib/admin-auth";
+import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
+import { corsPreflight, jsonWithCors } from "@/lib/cors";
 
 const MAX_REPLY_LENGTH = 2000;
+
+export async function OPTIONS(request: NextRequest) {
+  return corsPreflight(request);
+}
 
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const isAdmin = await isValidAdminSession(
-    request.cookies.get(ADMIN_COOKIE_NAME)?.value
-  );
+  const isAdmin = await isAuthorizedAdminRequest(request);
   if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    return jsonWithCors(request, { error: "Unauthorized." }, { status: 401 });
   }
 
   const { id } = await context.params;
@@ -21,19 +24,21 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return jsonWithCors(request, { error: "Invalid request." }, { status: 400 });
   }
 
   const payload = body as { reply?: unknown };
   const reply = typeof payload.reply === "string" ? payload.reply.trim() : "";
   if (!reply) {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: "Write a reply before publishing." },
       { status: 400 }
     );
   }
   if (reply.length > MAX_REPLY_LENGTH) {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: `Replies must be ${MAX_REPLY_LENGTH} characters or fewer.` },
       { status: 400 }
     );
@@ -51,15 +56,17 @@ export async function POST(
       .run();
 
     if (!result.meta.changes) {
-      return NextResponse.json(
+      return jsonWithCors(
+        request,
         { error: "This question no longer exists." },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ ok: true, repliedAt: now });
+    return jsonWithCors(request, { ok: true, repliedAt: now });
   } catch {
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       { error: "The reply could not be published." },
       { status: 503 }
     );
